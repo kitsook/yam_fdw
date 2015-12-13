@@ -102,13 +102,13 @@ class Yamfdw(ForeignDataWrapper):
             for f in self.fields: # calculate selectivity of each field (once per session)
                 if f=='_id': continue
                 # check for unique indexes and set those to 1
-                if f in self.indexes and self.indexes.get(f): 
+                if f in self.indexes and self.indexes.get(f):
                    self.pkeys.append( ((f,), 1) )
                 elif f in self.indexes:
                    self.pkeys.append( ((f,), min((self.count/10),1000) ) )
-                else: 
+                else:
                    self.pkeys.append( ((f,), self.count) )
-    
+
     def build_spec(self, quals, trans=True):
         Q = {}
 
@@ -138,9 +138,9 @@ class Yamfdw(ForeignDataWrapper):
 
             if qual.operator in comp_mapper:
                comp = Q.setdefault(mongo_field_name, {})
-               if qual.operator == '~~': 
-                  comp[comp_mapper[qual.operator]] = vform(qual.value.replace('%','.*'))
-               else: 
+               if qual.operator == '~~':
+                  comp[comp_mapper[qual.operator]] = vform(qual.value.replace('%',''))
+               else:
                   comp[comp_mapper[qual.operator]] = vform(qual.value)
                Q[mongo_field_name] = comp
                if self.debug: log2pg('Qual {} comp {}'.format(qual.operator, qual.value))
@@ -154,10 +154,10 @@ class Yamfdw(ForeignDataWrapper):
         num_rows = self.count
         if self.pipe: num_rows=self.count*10
         else:
-           if quals: 
+           if quals:
               fields=[q.field_name for q in quals]
               if '_id' in fields: num_rows=1
-              else: 
+              else:
                   # this part can only be allowed if Q is indexed, otherwise very bad
                   fields=[q.field_name in self.indexes for q in quals]
                   if True in fields:
@@ -189,7 +189,7 @@ class Yamfdw(ForeignDataWrapper):
             arr=self.pipe[0]['$unwind']    # may not be safe assumption in the future
             countpipe=[]
             if Q: countpipe.append({'$match':Q})
-            # hack: everyone just gets array size, 
+            # hack: everyone just gets array size,
             # TODO: this only works for one $unwind for now
             countpipe.append({'$project':{'_id':0, 'arrsize': {'$size':arr}}})
             countpipe.append({'$group':{'_id':None,'sum':{'$sum':'$arrsize'}}})
