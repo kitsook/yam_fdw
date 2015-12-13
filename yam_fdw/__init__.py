@@ -139,7 +139,7 @@ class Yamfdw(ForeignDataWrapper):
             if qual.operator in comp_mapper:
                comp = Q.setdefault(mongo_field_name, {})
                if qual.operator == '~~':
-                  comp[comp_mapper[qual.operator]] = vform(qual.value.replace('%','.*').replace('_','.'))
+                  comp[comp_mapper[qual.operator]] = vform(qual.value.strip('%').replace('%','.*').replace('_','.'))
                else:
                   comp[comp_mapper[qual.operator]] = vform(qual.value)
                Q[mongo_field_name] = comp
